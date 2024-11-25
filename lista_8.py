@@ -150,3 +150,106 @@ if __name__=='__main__':
     print(f"Coeficiente a: {a:.2f}")
     print(f"Coeficiente b: {b:.2f}")
 
+#item b)
+import numpy as np
+
+def generate_points(m):
+    np.random.seed(1)
+    a = 6
+    b = -3
+    x = np.linspace(0, 10, m)
+    y = a*x + b + np.random.standard_cauchy(size=m)
+    return (x, y)
+
+def save_points(points, path='test_points.txt'):
+    with open(path, 'wt') as f:
+        for x, y in zip(points[0], points[1]):
+            f.write(f'{x} {y}\n')
+
+if __name__ == "__main__":
+    # Gerar e salvar os conjuntos de pontos para diferentes tamanhos de dados
+    for m in [64, 128, 256, 512, 1024]:
+        points = generate_points(m)
+        save_points(points, f'CodigosExcercicios/xy_{m}.txt')
+        print(f"Conjunto de {m} pontos salvo em: CodigosExcercicios/xy_{m}.txt")
+
+def carregar_pontos(arquivo):
+    """
+    Carrega os pontos de um arquivo de texto.
+    :param arquivo: Caminho para o arquivo com os pontos.
+    :return: Arrays x e y.
+    """
+    pontos = np.loadtxt(arquivo)
+    return pontos[:, 0], pontos[:, 1]
+
+# Executar o ajuste para diferentes tamanhos de dados
+for m in [64, 128, 256, 512, 1024]:
+    arquivo = f'CodigosExcercicios/xy_{m}.txt'
+    x, y = carregar_pontos(arquivo)
+    
+    # Ajuste da linha
+    a, b = ajuste_linear(x, y)
+    
+    # Exibir o gráfico com a linha ajustada
+    plotar_ajuste(x, y, a, b, m)
+    
+    # Exibir os coeficientes a e b ajustados
+    print(f"Para {m} pontos:")
+    print(f"Coeficiente a: {a:.2f}")
+    print(f"Coeficiente b: {b:.2f}")
+    print("-" * 40)
+
+#item c e d
+
+import numpy as np
+from scipy.optimize import minimize
+import matplotlib.pyplot as plt
+
+def generate_points(m):
+    np.random.seed(1)
+    a = 6
+    b = -3
+    x = np.linspace(0, 10, m)
+    y = a * x + b + np.random.standard_cauchy(size=m) 
+    return x, y
+
+def erro_quadratico(params, x, y):
+    a, b = params
+    return np.sum((a * x + b - y) ** 2)
+
+def ajuste_linear_mínimos_quadrados(x, y):
+    params_iniciais = [0, 0]
+    resultado = minimize(erro_quadratico, params_iniciais, args=(x, y))
+    a_otimo, b_otimo = resultado.x
+    return a_otimo, b_otimo
+
+def plotar_ajuste(x, y, a, b, m):
+    plt.scatter(x, y, color='blue', label='Pontos reais', s=10)
+    plt.plot(x, a * x + b, color='red', label=f'Linha ajustada: y = {a:.2f}x + {b:.2f}', linewidth=2)
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title(f'Ajuste Linear - {m} Pontos')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+
+for m in [64, 128, 256, 512, 1024]:
+    x, y = generate_points(m)
+
+    a, b = ajuste_linear_mínimos_quadrados(x, y)
+    
+    plotar_ajuste(x, y, a, b, m)
+    
+    print(f"Para {m} pontos:")
+    print(f"Coeficiente a (erros quadráticos): {a:.2f}")
+    print(f"Coeficiente b (erros quadráticos): {b:.2f}")
+    print("-" * 40)
+
+#item e)
+#Quando se utiliza a soma das diferenças absolutas, grandes desvios nos valores de y
+#y têm um impacto menor no modelo final do que na minimização dos erros quadráticos. 
+#Isso ocorre porque a função absoluta cresce linearmente, enquanto o erro quadrático aumenta exponencialmente.
+
+#A técnica de mínimos quadrados pode ser resolvida de forma simples e rápida, sem a necessidade de otimização numérica, como acontece na minimização dos erros absolutos. 
+#Isso faz com que a implementação da solução seja mais simples
